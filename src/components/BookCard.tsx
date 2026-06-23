@@ -1,7 +1,7 @@
 import Link from "next/link";
 import BookCover from "./BookCover";
 import { formatPrice, type Book } from "@/lib/db";
-import { addToCartAction } from "@/app/actions/cart-actions";
+import AddToCartButton from "./AddToCartButton";
 
 export default function BookCard({ book }: { book: Book }) {
   return (
@@ -41,16 +41,7 @@ export default function BookCard({ book }: { book: Book }) {
           </span>
 
           {book.stock > 0 ? (
-            <form action={addToCartAction.bind(null, book.id, 1)}>
-              <button
-                type="submit"
-                className="text-xs px-3 py-1.5 rounded-full bg-oxblood text-cream hover:bg-oxblood-dark
-                           transition-colors cursor-pointer"
-                style={{ fontFamily: "var(--font-stamp)" }}
-              >
-                ADD
-              </button>
-            </form>
+            <AddToCartButton bookId={book.id} bookTitle={book.title} />
           ) : (
             <span className="text-xs text-ink-soft/70" style={{ fontFamily: "var(--font-stamp)" }}>
               SOLD OUT

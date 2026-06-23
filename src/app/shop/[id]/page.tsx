@@ -10,7 +10,7 @@ import {
   getReviewsForBook,
   getRatingSummary,
 } from "@/lib/db";
-import { addToCartWithQtyAction } from "@/app/actions/cart-actions";
+import AddToCartButton from "@/components/AddToCartButton";
 import { auth } from "@/lib/auth";
 
 export default async function BookDetailPage({
@@ -83,35 +83,10 @@ export default async function BookDetailPage({
 
           <div className="mt-6">
             {book.stock > 0 ? (
-              <form
-                action={addToCartWithQtyAction.bind(null, book.id)}
-                className="flex items-center gap-3"
-              >
-                <label htmlFor="qty" className="sr-only">
-                  Quantity
-                </label>
-                <select
-                  id="qty"
-                  name="qty"
-                  defaultValue="1"
-                  className="rounded-md border border-ink/20 bg-cream px-3 py-2.5 text-sm focus:border-oxblood"
-                >
-                  {Array.from({ length: maxQty }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-full bg-oxblood text-cream hover:bg-oxblood-dark
-                             transition-colors text-sm cursor-pointer"
-                  style={{ fontFamily: "var(--font-stamp)" }}
-                >
-                  ADD TO CART
-                </button>
+              <div className="flex items-center gap-3">
+                <AddToCartButton bookId={book.id} bookTitle={book.title} showQtySelect={true} maxQty={maxQty} />
                 <span className="text-sm text-ink-soft">{book.stock} left</span>
-              </form>
+              </div>
             ) : (
               <p className="text-oxblood text-sm" style={{ fontFamily: "var(--font-stamp)" }}>
                 SOLD OUT
