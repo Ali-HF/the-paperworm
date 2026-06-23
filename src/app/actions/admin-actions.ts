@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { createBook, updateBook, deleteBook, GENRES, updateOrderStatus } from "@/lib/db";
+import { createBook, updateBook, deleteBook, GENRES, updateOrderStatus, getOrder, getOrderItems } from "@/lib/db";
+import { sendOrderShippedEmail, sendOrderDeliveredEmail } from "@/lib/email";
 
 async function requireAdmin() {
   const session = await auth();
@@ -91,6 +92,34 @@ export async function updateOrderStatusAction(orderId: number, formData: FormDat
   const status = formData.get("status") as string;
   if (!status) return;
   await updateOrderStatus(orderId, status);
+
+  // Trigger status emails asynchronously (fire-and-forget)
+  try {
+    const order = await getOrder(orderId);
+    if (order) {
+      const items = await getOrderItems(orderId);
+      const shipping = order.shipping_json ? JSON.parse(order.shipping_json) : {};
+      
+      const email = order.user_email || shipping.email || "";
+      const customerName = shipping.fullName || order.user_name || "Customer";
+
+      if (email) {
+        if (status === "Shipped") {
+          await sendOrderShippedEmail(email, orderId, customerName, items, order.total_cents, {
+            address: shipping.address || "",
+            area: shipping.area || "",
+            city: shipping.city || "",
+            phone: shipping.phone || "",
+          });
+        } else if (status === "Delivered") {
+          await sendOrderDeliveredEmail(email, orderId, customerName, items);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to send status update email:", error);
+  }
+
   revalidatePath("/admin/orders");
   revalidatePath("/admin");
 }

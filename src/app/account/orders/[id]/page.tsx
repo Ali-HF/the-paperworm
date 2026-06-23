@@ -116,7 +116,7 @@ export default async function OrderDetailPage({
             <span className="text-2xl shrink-0">🎉</span>
             <div>
               <p className="font-semibold text-emerald-900 mb-1" style={{ fontFamily: "var(--font-body)" }}>
-                Order confirmed via WhatsApp!
+                Order confirmed!
               </p>
               <p className="text-sm text-emerald-800 leading-relaxed">
                 Thank you for confirming. Your order is now being prepared for delivery.

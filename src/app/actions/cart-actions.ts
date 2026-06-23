@@ -15,7 +15,7 @@ import {
   getOrCreateGuestUser 
 } from "@/lib/db";
 import { sendWhatsappNotification } from "@/lib/whatsapp";
-import { sendEmailNotification } from "@/lib/email";
+import { sendEmailNotification, sendOrderConfirmationRequestEmail } from "@/lib/email";
 
 export async function addToCartAction(bookId: number, qty: number = 1) {
   const session = await auth();
@@ -262,19 +262,15 @@ export async function checkoutAction(prevState: unknown, formData: FormData): Pr
 
   // 10. Send Email (fire-and-forget)
   try {
-    const emailSubject = `Order #${result.orderId} Confirmation - The Paperworm`;
-    const emailHtml = `
-      <h1>Thank you for your order, ${fullName}!</h1>
-      <p>We've received your order <strong>#${result.orderId}</strong>.</p>
-      <p><strong>Payment Method:</strong> Cash on Delivery (COD)</p>
-      <p><strong>Shipping Address:</strong> ${address}, ${area}, ${city}</p>
-      <p><strong>Items:</strong> ${itemsSummary}</p>
-      <p><strong>Total:</strong> ${totalPKR}</p>
-      <p>We will contact you on ${phone} when your package is ready for delivery.</p>
-      <p>Please check your WhatsApp and reply <strong>"confirm"</strong> to confirm your order!</p>
-    `;
     const targetEmail = email || "customer@example.com";
-    await sendEmailNotification(targetEmail, emailSubject, emailHtml);
+    await sendOrderConfirmationRequestEmail(
+      targetEmail,
+      result.orderId,
+      fullName,
+      cartItems,
+      result.total,
+      shippingDetails
+    );
   } catch (emailError) {
     console.error("Email notification failed (non-blocking):", emailError);
   }
