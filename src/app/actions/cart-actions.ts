@@ -207,7 +207,7 @@ export async function checkoutAction(prevState: unknown, formData: FormData): Pr
   const shippingJson = JSON.stringify(shippingDetails);
 
   // 5. Place order
-  const result = await placeOrder(userId, shippingJson, "cod");
+  const result = await placeOrder(userId, shippingJson, "cod", cartItems);
   if ("error" in result) {
     return { error: result.error };
   }

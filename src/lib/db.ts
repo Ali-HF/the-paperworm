@@ -466,18 +466,19 @@ export async function cartCount(userId: number): Promise<number> {
 export async function placeOrder(
   userId: number,
   shippingJson: string = "{}",
-  paymentMethod: string = "cod"
+  paymentMethod: string = "cod",
+  items?: CartRow[]
 ): Promise<{ orderId: number; total: number } | { error: string }> {
-  const items = await getCart(userId);
-  if (items.length === 0) return { error: "Your cart is empty." };
+  const finalItems = items ?? await getCart(userId);
+  if (finalItems.length === 0) return { error: "Your cart is empty." };
 
-  for (const it of items) {
+  for (const it of finalItems) {
     if (it.quantity > it.stock) {
       return { error: `Only ${it.stock} left of "${it.title}".` };
     }
   }
 
-  const total = items.reduce((sum, it) => sum + it.price_cents * it.quantity, 0);
+  const total = finalItems.reduce((sum, it) => sum + it.price_cents * it.quantity, 0);
 
   try {
     const result = await sql.begin(async (sql) => {
@@ -490,7 +491,7 @@ export async function placeOrder(
       const orderId = orderResult[0].id;
 
       // 2. Add order items & decrement stock
-      for (const it of items) {
+      for (const it of finalItems) {
         await sql`
           INSERT INTO order_items (order_id, book_id, title, author, price_cents, quantity, cover_seed)
           VALUES (${orderId}, ${it.book_id}, ${it.title}, ${it.author}, ${it.price_cents}, ${it.quantity}, ${it.cover_seed})
