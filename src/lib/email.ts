@@ -46,10 +46,7 @@ export async function sendEmailNotification(to: string, subject: string, htmlCon
   }
 }
 
-export async function sendVerificationEmail(to: string, token: string): Promise<boolean> {
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  const verificationLink = `${baseUrl}/verify-email?token=${token}`;
-
+export async function sendVerificationCodeEmail(to: string, code: string): Promise<boolean> {
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -101,24 +98,21 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
             font-size: 16px;
             color: #4a4540;
           }
-          .btn-container {
+          .code-container {
             margin: 30px 0;
             text-align: center;
           }
-          .btn {
+          .code-box {
             display: inline-block;
-            background-color: #6b1d2f;
-            color: #faf8f5 !important;
-            text-decoration: none;
-            padding: 14px 28px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 16px;
-            letter-spacing: 0.03em;
-            box-shadow: 0 4px 6px rgba(107, 29, 47, 0.15);
-          }
-          .btn:hover {
-            background-color: #591724;
+            background-color: #f5eff0;
+            border: 1px dashed #6b1d2f;
+            color: #6b1d2f;
+            font-family: "Space Mono", monospace;
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 0.2em;
+            padding: 15px 30px 15px 40px; /* offset for letter-spacing */
+            border-radius: 8px;
           }
           .footer {
             background-color: #f5eff0;
@@ -128,15 +122,6 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
             color: #8c827a;
             border-top: 1px solid #e5e0d8;
           }
-          .link-fallback {
-            font-size: 13px;
-            color: #8c827a;
-            word-break: break-all;
-            background-color: #faf8f5;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #e5e0d8;
-          }
         </style>
       </head>
       <body>
@@ -145,19 +130,14 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
             <span class="logo">~ the paperworm ~</span>
           </div>
           <div class="content">
-            <h1>Welcome to the Bookstore!</h1>
-            <p>Thank you for creating an account with The Paperworm. To finish setting up your account, please verify your email address by clicking the button below:</p>
+            <h1>Verify your account</h1>
+            <p>Thank you for signing up for The Paperworm! Please use the following 6-digit verification code to complete your signup process:</p>
             
-            <div class="btn-container">
-              <a href="${verificationLink}" class="btn">Verify Email Address</a>
+            <div class="code-container">
+              <div class="code-box">${code}</div>
             </div>
 
-            <p>This verification link is valid for 24 hours. If you did not sign up for a Paperworm account, you can safely ignore this email.</p>
-            
-            <p style="margin-bottom: 5px; font-weight: bold;">Or copy and paste this link in your browser:</p>
-            <div class="link-fallback">
-              <a href="${verificationLink}" style="color: #6b1d2f;">${verificationLink}</a>
-            </div>
+            <p>This verification code is valid for 1 hour. If you did not request this, you can safely ignore this email.</p>
           </div>
           <div class="footer">
             &copy; 2026 The Paperworm. All rights reserved. <br>
@@ -168,5 +148,5 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
     </html>
   `;
 
-  return sendEmailNotification(to, "Verify your Paperworm account", htmlContent);
+  return sendEmailNotification(to, "Your Paperworm verification code", htmlContent);
 }

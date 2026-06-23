@@ -337,35 +337,40 @@ export async function createUser(name: string, email: string, passwordHash: stri
   return Number(result[0].id);
 }
 
-export async function createVerificationToken(userId: number): Promise<string> {
-  const token = crypto.randomUUID();
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+export async function createVerificationCode(userId: number): Promise<string> {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now (standard for OTP)
   await sql`
     UPDATE users 
-    SET verification_token = ${token}, verification_token_expires = ${expires}
+    SET verification_token = ${code}, verification_token_expires = ${expires}
     WHERE id = ${userId}
   `;
-  return token;
+  return code;
 }
 
-export async function verifyEmail(token: string): Promise<{ success: boolean; email?: string; error?: string }> {
-  const trimmedToken = token.trim();
-  if (!trimmedToken) {
-    return { success: false, error: "Verification token is required." };
+export async function verifyEmailCode(email: string, code: string): Promise<{ success: boolean; error?: string }> {
+  const trimmedEmail = email.toLowerCase().trim();
+  const trimmedCode = code.trim();
+  if (!trimmedEmail || !trimmedCode) {
+    return { success: false, error: "Email and verification code are required." };
   }
 
   const result = await sql`
-    SELECT id, email, verification_token_expires FROM users 
-    WHERE verification_token = ${trimmedToken}
+    SELECT id, verification_token, verification_token_expires FROM users 
+    WHERE email = ${trimmedEmail}
   `;
   const user = result[0];
   if (!user) {
-    return { success: false, error: "The verification link is invalid. It may have already been used, or it belongs to a different signup attempt." };
+    return { success: false, error: "No account found with that email address." };
+  }
+
+  if (!user.verification_token || user.verification_token !== trimmedCode) {
+    return { success: false, error: "The verification code you entered is incorrect." };
   }
 
   const expires = new Date(user.verification_token_expires);
   if (expires.getTime() < Date.now()) {
-    return { success: false, error: "This verification link has expired. Please log in to request a new verification link." };
+    return { success: false, error: "This verification code has expired. Please request a new code." };
   }
 
   await sql`
@@ -373,7 +378,7 @@ export async function verifyEmail(token: string): Promise<{ success: boolean; em
     SET email_verified = TRUE, verification_token = NULL, verification_token_expires = NULL 
     WHERE id = ${user.id}
   `;
-  return { success: true, email: user.email };
+  return { success: true };
 }
 
 export async function isEmailVerified(userId: number): Promise<boolean> {

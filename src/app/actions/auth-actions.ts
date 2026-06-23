@@ -5,8 +5,8 @@ import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn, signOut } from "@/lib/auth";
-import { createUser, getUserByEmail, createVerificationToken } from "@/lib/db";
-import { sendVerificationEmail } from "@/lib/email";
+import { createUser, getUserByEmail, createVerificationCode, verifyEmailCode } from "@/lib/db";
+import { sendVerificationCodeEmail } from "@/lib/email";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -33,7 +33,7 @@ export async function loginAction(
   if (user) {
     const valid = await bcrypt.compare(parsed.data.password, user.password_hash);
     if (valid && !user.email_verified) {
-      return { error: `UNVERIFIED:${user.email}` };
+      redirect(`/verify-email?email=${encodeURIComponent(user.email)}`);
     }
   }
 
@@ -81,14 +81,40 @@ export async function signupAction(
   const userId = await createUser(parsed.data.name, parsed.data.email, hash);
 
   try {
-    const token = await createVerificationToken(userId);
-    await sendVerificationEmail(parsed.data.email, token);
+    const code = await createVerificationCode(userId);
+    await sendVerificationCodeEmail(parsed.data.email, code);
   } catch (error) {
-    console.error("Failed to generate verification token or send email:", error);
-    return { error: "Account created, but we couldn't send a verification email. Please try logging in to resend." };
+    console.error("Failed to generate verification code or send email:", error);
+    return { error: "Account created, but we couldn't send a verification code. Please try logging in to request one." };
   }
 
   redirect(`/verify-email?email=${encodeURIComponent(parsed.data.email)}`);
+}
+
+export type VerifyCodeState = { error?: string } | undefined;
+
+export async function verifyCodeAction(
+  _prev: VerifyCodeState,
+  formData: FormData
+): Promise<VerifyCodeState> {
+  const email = String(formData.get("email") || "").trim();
+  const code = String(formData.get("code") || "").trim();
+
+  if (!email || !code) {
+    return { error: "Email and verification code are required." };
+  }
+
+  try {
+    const result = await verifyEmailCode(email, code);
+    if (!result.success) {
+      return { error: result.error };
+    }
+  } catch (error) {
+    console.error("Failed to verify email code:", error);
+    return { error: "Failed to verify the code. Please try again." };
+  }
+
+  redirect("/login?verified=true");
 }
 
 export async function resendVerificationAction(email: string): Promise<{ success?: string; error?: string }> {
@@ -99,7 +125,7 @@ export async function resendVerificationAction(email: string): Promise<{ success
   const user = await getUserByEmail(email);
   if (!user) {
     // Return standard success to avoid email enumeration
-    return { success: "If that email is registered, we have sent a new verification link." };
+    return { success: "If that email is registered, we have sent a new verification code." };
   }
 
   if (user.email_verified) {
@@ -107,12 +133,12 @@ export async function resendVerificationAction(email: string): Promise<{ success
   }
 
   try {
-    const token = await createVerificationToken(user.id);
-    await sendVerificationEmail(user.email, token);
-    return { success: "A new verification link has been sent to your email." };
+    const code = await createVerificationCode(user.id);
+    await sendVerificationCodeEmail(user.email, code);
+    return { success: "A new verification code has been sent to your email." };
   } catch (error) {
-    console.error("Failed to resend verification email:", error);
-    return { error: "We encountered an error sending the verification email. Please try again later." };
+    console.error("Failed to resend verification code:", error);
+    return { error: "We encountered an error sending the verification code. Please try again later." };
   }
 }
 

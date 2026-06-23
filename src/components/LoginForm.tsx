@@ -4,11 +4,16 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { loginAction } from "@/app/actions/auth-actions";
 
-export default function LoginForm({ next }: { next: string }) {
+export default function LoginForm({ next, verified }: { next: string; verified?: boolean }) {
   const [state, formAction, isPending] = useActionState(loginAction, undefined);
 
   return (
     <form action={formAction} className="space-y-4">
+      {verified && (
+        <div className="bg-moss/10 border border-moss/20 text-moss px-4 py-3 rounded-lg text-sm font-medium text-center animate-fadeIn">
+          Your account is verified! You can now log in.
+        </div>
+      )}
       <input type="hidden" name="next" value={next} />
 
       <div>
