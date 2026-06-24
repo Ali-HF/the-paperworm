@@ -1,14 +1,16 @@
 /**
- * Utility to send email notifications via Resend API
+ * Utility to send email notifications via Gmail SMTP
  */
+import nodemailer from "nodemailer";
 import { type CartRow, type OrderItem } from "./db";
 
 export async function sendEmailNotification(to: string, subject: string, htmlContent: string): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const isPlaceholder = !apiKey || apiKey.startsWith("re_xxxx") || apiKey === "";
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASSWORD;
+  const isPlaceholder = !smtpUser || !smtpPass || smtpUser.includes("your-email") || smtpPass.includes("your-16-character") || smtpUser === "";
 
   if (isPlaceholder) {
-    console.log("\n--- SIMULATED EMAIL NOTIFICATION (RESEND KEY NOT CONFIGURED) ---");
+    console.log("\n--- SIMULATED EMAIL NOTIFICATION (GMAIL SMTP NOT CONFIGURED) ---");
     console.log(`To:      ${to}`);
     console.log(`Subject: ${subject}`);
     console.log("Content:");
@@ -18,34 +20,29 @@ export async function sendEmailNotification(to: string, subject: string, htmlCon
   }
 
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
       },
-      body: JSON.stringify({
-        from: "The Paperworm <onboarding@resend.dev>",
-        to: to,
-        subject: subject,
-        html: htmlContent,
-      }),
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error(`Resend API Error: status=${res.status}, response=${errText}`);
-      return false;
-    }
+    const info = await transporter.sendMail({
+      from: `"The Paperworm" <${smtpUser}>`,
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    });
 
-    const data = await res.json();
-    console.log(`Email successfully sent to ${to} via Resend. ID: ${data.id}`);
+    console.log(`Email successfully sent to ${to} via Gmail SMTP. Message ID: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error("Failed to send email via Resend:", error);
+    console.error("Failed to send email via Gmail SMTP:", error);
     return false;
   }
 }
+
 
 export async function sendVerificationCodeEmail(to: string, code: string): Promise<boolean> {
   const htmlContent = `

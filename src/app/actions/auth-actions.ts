@@ -82,7 +82,10 @@ export async function signupAction(
 
   try {
     const code = await createVerificationCode(userId);
-    await sendVerificationCodeEmail(parsed.data.email, code);
+    const success = await sendVerificationCodeEmail(parsed.data.email, code);
+    if (!success) {
+      throw new Error("SMTP server failed to send verification email.");
+    }
   } catch (error) {
     console.error("Failed to generate verification code or send email:", error);
     return { error: "Account created, but we couldn't send a verification code. Please try logging in to request one." };
@@ -134,7 +137,10 @@ export async function resendVerificationAction(email: string): Promise<{ success
 
   try {
     const code = await createVerificationCode(user.id);
-    await sendVerificationCodeEmail(user.email, code);
+    const success = await sendVerificationCodeEmail(user.email, code);
+    if (!success) {
+      throw new Error("SMTP server failed to send verification email.");
+    }
     return { success: "A new verification code has been sent to your email." };
   } catch (error) {
     console.error("Failed to resend verification code:", error);
