@@ -639,7 +639,7 @@ export async function upsertReview(bookId: number, userId: number, rating: numbe
 }
 
 export async function updateOrderStatus(orderId: number, status: string): Promise<void> {
-  const deductedStatuses = ["Pending", "Shipped", "Delivered"];
+  const deductedStatuses = ["Pending", "Shipped", "Out for Delivery", "Delivered"];
   const newIsDeducted = deductedStatuses.includes(status);
 
   await sql.begin(async (sql) => {

@@ -12,7 +12,9 @@ function getTransporter() {
 
   if (!transporter && smtpUser && smtpPassword) {
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: smtpUser,
         pass: smtpPassword,
@@ -514,6 +516,158 @@ export async function sendOrderShippedEmail(
   `;
 
   return sendEmailNotification(to, `Your Order #${orderId} Has Shipped! 📦 - The Paperworm`, htmlContent);
+}
+
+export async function sendOrderOutForDeliveryEmail(
+  to: string,
+  orderId: number,
+  customerName: string,
+  items: OrderItem[],
+  totalCents: number,
+  shipping: { address: string; area: string; city: string; phone: string }
+): Promise<boolean> {
+  const baseUrl = getBaseUrl();
+  const viewOrderUrl = `${baseUrl}/account/orders/${orderId}`;
+  const totalPKR = `PKR ${(totalCents / 100).toFixed(2)}`;
+
+  const itemsListHtml = items
+    .map(
+      (item) => `
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f2ece4;">
+        <div>
+          <span style="font-weight: 600; color: #2e2926;">${item.title}</span>
+          <span style="color: #8c827a; font-size: 13px;">x${item.quantity}</span>
+        </div>
+        <div style="font-weight: 500; font-family: monospace;">PKR ${(item.price_cents * item.quantity / 100).toFixed(2)}</div>
+      </div>
+    `
+    )
+    .join("");
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Your Order #${orderId} Is Out for Delivery! 🛵 - The Paperworm</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #faf8f5;
+            color: #2e2926;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border: 1px solid #e5e0d8;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+          }
+          .header {
+            background-color: #6b1d2f;
+            padding: 30px 20px;
+            text-align: center;
+          }
+          .logo {
+            font-size: 24px;
+            color: #faf8f5;
+            letter-spacing: 0.05em;
+            font-weight: bold;
+          }
+          .content {
+            padding: 40px 30px;
+            line-height: 1.6;
+          }
+          h1 {
+            font-size: 20px;
+            color: #591724;
+            margin-top: 0;
+            margin-bottom: 15px;
+          }
+          .button-container {
+            text-align: center;
+            margin: 30px 0;
+          }
+          .btn-primary {
+            display: inline-block;
+            background-color: #6b1d2f;
+            color: #faf8f5 !important;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 24px;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 4px rgba(107, 29, 47, 0.2);
+          }
+          .summary-card {
+            background-color: #faf8f5;
+            border: 1px solid #e5e0d8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+          }
+          .summary-header {
+            font-weight: bold;
+            color: #591724;
+            border-bottom: 2px solid #e5e0d8;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+          .footer {
+            background-color: #f5eff0;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #8c827a;
+            border-top: 1px solid #e5e0d8;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <span class="logo">~ the paperworm ~</span>
+          </div>
+          <div class="content">
+            <h1>Great news! Your order is out for delivery. 🛵</h1>
+            <p>Hi ${customerName}, your order <strong>#${orderId}</strong> is out for delivery with our rider and will be at your doorstep very soon!</p>
+            
+            <div class="button-container">
+              <a href="${viewOrderUrl}" class="btn-primary" style="color: #faf8f5;">VIEW ORDER DETAILS</a>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-header">Delivery Details</div>
+              ${itemsListHtml}
+              <div style="display: flex; justify-content: space-between; padding: 15px 0 0; font-weight: bold; font-size: 16px; color: #591724;">
+                <span>Total Amount:</span>
+                <span>${totalPKR}</span>
+              </div>
+              <div style="margin-top: 20px; font-size: 13px; border-top: 1px solid #e5e0d8; padding-top: 15px; color: #4a4540;">
+                <strong>Shipping Address:</strong><br>
+                ${shipping.address}, ${shipping.area}, ${shipping.city}<br>
+                <strong>Phone:</strong> ${shipping.phone}
+              </div>
+            </div>
+          </div>
+          <div class="footer">
+            &copy; 2026 The Paperworm. All rights reserved. <br>
+            Adding character to your desk, one page at a time.
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return sendEmailNotification(to, `Your Order #${orderId} Is Out for Delivery! 🛵 - The Paperworm`, htmlContent);
 }
 
 export async function sendOrderDeliveredEmail(

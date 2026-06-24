@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { createBook, updateBook, deleteBook, GENRES, updateOrderStatus, getOrder, getOrderItems } from "@/lib/db";
-import { sendOrderShippedEmail, sendOrderDeliveredEmail } from "@/lib/email";
+import { sendOrderShippedEmail, sendOrderDeliveredEmail, sendOrderOutForDeliveryEmail } from "@/lib/email";
 
 async function requireAdmin() {
   const session = await auth();
@@ -118,6 +118,13 @@ export async function updateOrderStatusAction(orderId: number, formData: FormDat
       if (email) {
         if (status === "Shipped") {
           await sendOrderShippedEmail(email, orderId, customerName, items, order.total_cents, {
+            address: shipping.address || "",
+            area: shipping.area || "",
+            city: shipping.city || "",
+            phone: shipping.phone || "",
+          });
+        } else if (status === "Out for Delivery") {
+          await sendOrderOutForDeliveryEmail(email, orderId, customerName, items, order.total_cents, {
             address: shipping.address || "",
             area: shipping.area || "",
             city: shipping.city || "",

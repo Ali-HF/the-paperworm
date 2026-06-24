@@ -97,6 +97,12 @@ async function main() {
     stockAfter = updatedBook!.stock;
     assert(stockAfter === stockBefore - 2, `stock remains decremented on Shipped status update (before=${stockBefore}, after=${stockAfter})`);
 
+    // Transition to Out for Delivery should NOT change stock (already decremented)
+    await db.updateOrderStatus(orderResult.orderId, "Out for Delivery");
+    updatedBook = await db.getBook(book.id);
+    stockAfter = updatedBook!.stock;
+    assert(stockAfter === stockBefore - 2, `stock remains decremented on Out for Delivery status update (before=${stockBefore}, after=${stockAfter})`);
+
     // Transition to Cancelled should restore stock
     await db.updateOrderStatus(orderResult.orderId, "Cancelled");
     updatedBook = await db.getBook(book.id);
