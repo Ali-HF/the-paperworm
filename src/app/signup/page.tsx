@@ -4,9 +4,9 @@ import SignupForm from "@/components/SignupForm";
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; email?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, email } = await searchParams;
 
   return (
     <div className="max-w-sm mx-auto px-4 py-20">
@@ -19,7 +19,7 @@ export default async function SignupPage({
           Join the tunnel
         </h1>
       </div>
-      <SignupForm next={next ?? "/account"} />
+      <SignupForm next={next ?? "/account"} initialEmail={email} />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { signupAction } from "@/app/actions/auth-actions";
 
-export default function SignupForm({ next }: { next: string }) {
+export default function SignupForm({ next, initialEmail = "" }: { next: string; initialEmail?: string }) {
   const [state, formAction, isPending] = useActionState(signupAction, undefined);
 
   return (
@@ -42,6 +42,7 @@ export default function SignupForm({ next }: { next: string }) {
           name="email"
           type="email"
           required
+          defaultValue={initialEmail}
           autoComplete="email"
           className="w-full rounded-md border border-ink/20 bg-cream px-3 py-2.5 text-sm focus:border-oxblood transition-colors"
         />

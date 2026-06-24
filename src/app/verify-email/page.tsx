@@ -8,9 +8,10 @@ import Link from "next/link";
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; upgrade?: string }>;
 }) {
-  const { email } = await searchParams;
+  const { email, upgrade } = await searchParams;
+  const isUpgrade = upgrade === "true";
 
   return (
     <div className="max-w-md mx-auto px-4 py-16 md:py-24">
@@ -39,13 +40,18 @@ export default async function VerifyEmailPage({
                 className="text-2xl text-ink font-semibold"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                Verify your email
+                {isUpgrade ? "Claim your guest account" : "Verify your email"}
               </h2>
               <p className="text-sm text-ink-soft leading-relaxed">
-                We have sent a 6-digit verification code to <strong className="text-ink font-semibold break-all">{email}</strong>.
+                {isUpgrade 
+                  ? "We found a guest account with this email! Enter the 6-digit verification code sent to "
+                  : "We have sent a 6-digit verification code to "}
+                <strong className="text-ink font-semibold break-all">{email}</strong>.
               </p>
               <p className="text-xs text-ink-soft/85 leading-relaxed">
-                Please enter the code below to verify your account and log in.
+                {isUpgrade
+                  ? "Enter the code below to verify your email, set your password, and claim your order history."
+                  : "Please enter the code below to verify your account and log in."}
               </p>
             </div>
 

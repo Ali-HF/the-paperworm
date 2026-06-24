@@ -31,6 +31,9 @@ export async function loginAction(
 
   const user = await getUserByEmail(parsed.data.email);
   if (user) {
+    if (user.password_hash === "NO_PASSWORD") {
+      return { error: "GUEST_ACCOUNT_CONFLICT" };
+    }
     const valid = user.password_hash.startsWith("$") ? await bcrypt.compare(parsed.data.password, user.password_hash) : false;
     if (valid && !user.email_verified) {
       redirect(`/verify-email?email=${encodeURIComponent(user.email)}`);
@@ -103,7 +106,7 @@ export async function signupAction(
     return { error: "Account created, but we couldn't send a verification code. Please try logging in to request one." };
   }
 
-  redirect(`/verify-email?email=${encodeURIComponent(parsed.data.email)}`);
+  redirect(`/verify-email?email=${encodeURIComponent(parsed.data.email)}${isUpgradingGuest ? "&upgrade=true" : ""}`);
 }
 
 export type VerifyCodeState = { error?: string } | undefined;

@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { loginAction } from "@/app/actions/auth-actions";
 
 export default function LoginForm({ next, verified, resetSuccess }: { next: string; verified?: boolean; resetSuccess?: boolean }) {
   const [state, formAction, isPending] = useActionState(loginAction, undefined);
+  const [email, setEmail] = useState("");
 
   return (
     <form action={formAction} className="space-y-4">
@@ -33,6 +34,8 @@ export default function LoginForm({ next, verified, resetSuccess }: { next: stri
           id="email"
           name="email"
           type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
           className="w-full rounded-md border border-ink/20 bg-cream px-3 py-2.5 text-sm focus:border-oxblood transition-colors"
@@ -62,7 +65,20 @@ export default function LoginForm({ next, verified, resetSuccess }: { next: stri
         />
       </div>
 
-      {state?.error && <p className="text-sm text-oxblood">{state.error}</p>}
+      {state?.error === "GUEST_ACCOUNT_CONFLICT" ? (
+        <div className="bg-brass/10 border border-brass/20 text-brass px-4 py-3 rounded-lg text-sm font-medium text-center animate-fadeIn">
+          This email is associated with a guest checkout. Please{" "}
+          <Link
+            href={`/signup?email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`}
+            className="underline font-bold text-oxblood"
+          >
+            sign up here
+          </Link>{" "}
+          to set a password and activate your account.
+        </div>
+      ) : (
+        state?.error && <p className="text-sm text-oxblood">{state.error}</p>
+      )}
 
       <button
         type="submit"
