@@ -30,7 +30,7 @@ export default async function ShopPage({
       </div>
 
       {/* Horizontal Category Navigation Bar & Sort Option */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-8 border-b border-ink/10">
+      <div className="sticky top-20 z-30 bg-parchment/95 backdrop-blur py-4 mb-8 border-b border-ink/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs uppercase tracking-wider text-ink-soft mr-4" style={{ fontFamily: "var(--font-stamp)" }}>
             {books.length} {books.length === 1 ? "ITEM" : "ITEMS"}
