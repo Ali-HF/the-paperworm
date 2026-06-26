@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useRef } from "react";
 import { GENRES } from "@/lib/constants";
 import type { Book } from "@/lib/types";
 import type { BookFormState } from "@/app/actions/admin-actions";
@@ -19,6 +19,8 @@ export default function BookForm({
   const [primaryPreview, setPrimaryPreview] = useState<string | null>(null);
   const [primaryError, setPrimaryError] = useState<string | null>(null);
   const [secondaryPreview, setSecondaryPreview] = useState<string | null>(null);
+  const primaryInputRef = useRef<HTMLInputElement>(null);
+  const secondaryInputRef = useRef<HTMLInputElement>(null);
   const [secondaryError, setSecondaryError] = useState<string | null>(null);
 
   // Helper to validate and preview uploaded files
@@ -51,7 +53,7 @@ export default function BookForm({
     }
   };
   return (
-    <form action={formAction} className="space-y-5 max-w-xl">
+    <form action={formAction} encType="multipart/form-data" className="space-y-5 max-w-xl">
       <Field label="Product Name" name="title" defaultValue={initial?.title} required />
       <Field label="Brand" name="author" defaultValue={initial?.author} required />
 
@@ -153,12 +155,14 @@ export default function BookForm({
             name="cover_file"
             accept="image/jpeg, image/png, image/webp"
             className="w-full text-sm text-ink"
+            ref={primaryInputRef}
+            onChange={() => handleFileUpload('cover_file', setPrimaryPreview, setPrimaryError)}
           />
           <button
             type="button"
             className="mt-2 px-4 py-2 rounded-md bg-oxblood text-cream hover:bg-oxblood-dark transition-colors text-xs uppercase tracking-wider cursor-pointer"
             style={{ fontFamily: "var(--font-stamp)" }}
-            onClick={() => handleFileUpload('cover_file', setPrimaryPreview, setPrimaryError)}
+            onClick={() => primaryInputRef.current?.click()}
           >
             Upload Primary Image
           </button>
@@ -177,12 +181,14 @@ export default function BookForm({
             name="cover_file_2"
             accept="image/jpeg, image/png, image/webp"
             className="w-full text-sm text-ink"
+            ref={secondaryInputRef}
+            onChange={() => handleFileUpload('cover_file_2', setSecondaryPreview, setSecondaryError)}
           />
           <button
             type="button"
             className="mt-2 px-4 py-2 rounded-md bg-oxblood text-cream hover:bg-oxblood-dark transition-colors text-xs uppercase tracking-wider cursor-pointer"
             style={{ fontFamily: "var(--font-stamp)" }}
-            onClick={() => handleFileUpload('cover_file_2', setSecondaryPreview, setSecondaryError)}
+            onClick={() => secondaryInputRef.current?.click()}
           >
             Upload Secondary Image
           </button>
