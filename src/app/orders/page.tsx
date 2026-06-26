@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+
+export const dynamic = "force-dynamic";
 
 // Utility for localStorage handling (guest orders)
 const GUEST_ORDERS_KEY = "guestOrders";
@@ -18,36 +19,20 @@ function saveGuestOrder(id: string) {
 }
 
 export default function OrdersPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const paramId = searchParams?.get("orderId");
 
-  const [orderId, setOrderId] = useState<string>(paramId ?? "");
+  // Parse orderId from URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const qId = params.get('orderId');
+    if (qId) setOrderId(qId);
+  }, []);
+
+  // State variables
+  const [orderId, setOrderId] = useState<string>("");
   const [order, setOrder] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastStatus, setLastStatus] = useState<string>("");
   const [isFetching, setIsFetching] = useState(false);
-
-  // Request notification permission once on mount
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  // When query param changes (e.g., from My Orders page), load that order automatically
-  useEffect(() => {
-    if (paramId) {
-      setOrderId(paramId);
-    }
-  }, [paramId]);
-
-  // Poll for status updates when an order is loaded
-  useEffect(() => {
-    if (!orderId) return;
-    const interval = setInterval(fetchStatus, 30000);
-    return () => clearInterval(interval);
-  }, [orderId, lastStatus]);
 
   const fetchStatus = async () => {
     if (!orderId) return;
@@ -84,39 +69,41 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "var(--font-stamp)" }}>
-        Check Your Order
-      </h1>
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Enter Order ID"
-          value={orderId}
-          onChange={(e) => setOrderId(e.target.value)}
-          className="flex-1 border rounded px-2 py-1"
-          required
-        />
-        <button type="submit" className="bg-oxblood text-cream px-4 py-1 rounded">
-          Check
-        </button>
-      </form>
-      {error && <p className="text-oxblood">{error}</p>}
-      {order && (
-        <div className="border p-4 rounded">
-          <h2 className="text-xl font-medium mb-2">Order #{order.id}</h2>
-          <p><strong>Status:</strong> {order.status}</p>
-          <p><strong>Total:</strong> ${(order.total_cents / 100).toFixed(2)}</p>
-          <button
-            onClick={handleRefresh}
-            disabled={isFetching}
-            className="mt-2 bg-oxblood text-cream px-3 py-1 rounded hover:bg-oxblood/80 transition"
-          >
-            {isFetching ? "Refreshing…" : "Refresh Status"}
+    <Suspense fallback={<div className="p-4">Loading…</div>}>
+      <div className="max-w-lg mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: "var(--font-stamp)" }}>
+          Check Your Order
+        </h1>
+        <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="Enter Order ID"
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+            className="flex-1 border rounded px-2 py-1"
+            required
+          />
+          <button type="submit" className="bg-oxblood text-cream px-4 py-1 rounded">
+            Check
           </button>
-        </div>
-      )}
-    </div>
+        </form>
+        {error && <p className="text-oxblood">{error}</p>}
+        {order && (
+          <div className="border p-4 rounded">
+            <h2 className="text-xl font-medium mb-2">Order #{order.id}</h2>
+            <p><strong>Status:</strong> {order.status}</p>
+            <p><strong>Total:</strong> ${(order.total_cents / 100).toFixed(2)}</p>
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="mt-2 bg-oxblood text-cream px-3 py-1 rounded hover:bg-oxblood/80 transition"
+            >
+              {isFetching ? "Refreshing…" : "Refresh Status"}
+            </button>
+          </div>
+        )}
+      </div>
+    </Suspense>
   );
 }
 
