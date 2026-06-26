@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 
+import { useRouter } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 // Utility for localStorage handling (guest orders)
@@ -33,6 +34,7 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastStatus, setLastStatus] = useState<string>("");
   const [isFetching, setIsFetching] = useState(false);
+  const router = useRouter();
 
   const fetchStatus = async () => {
     if (!orderId) return;
@@ -83,9 +85,8 @@ export default function OrdersPage() {
             className="flex-1 border rounded px-2 py-1"
             required
           />
-          <button type="submit" className="bg-oxblood text-cream px-4 py-1 rounded">
-            Check
-          </button>
+          <button type="submit" className="bg-oxblood text-cream px-4 py-1 rounded mr-2">Check</button>
+          <button type="button" onClick={() => router.push('/my-orders')} className="bg-cream text-oxblood px-4 py-1 rounded">My Orders</button>
         </form>
         {error && <p className="text-oxblood">{error}</p>}
         {order && (
