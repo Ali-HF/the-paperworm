@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { GENRES } from "@/lib/constants";
 import type { Book } from "@/lib/types";
 import type { BookFormState } from "@/app/actions/admin-actions";
@@ -124,7 +124,7 @@ export default function BookForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div ref={coverSeedRef}>
+        <div>
           <Field
             label="Primary Image URL"
             name="cover_seed"
@@ -132,7 +132,7 @@ export default function BookForm({
             placeholder="e.g. /images/peach_case.png"
           />
         </div>
-        <div ref={coverSeed2Ref}>
+        <div>
           <Field
             label="Secondary Image URL"
             name="cover_seed_2"
@@ -140,9 +140,12 @@ export default function BookForm({
             placeholder="e.g. /images/peach_case_2.png"
           />
         </div>
-        <div className="space-y-2">
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2 rounded-md border border-ink/10 p-4">
           <label className="text-xs tracking-[0.18em] uppercase text-ink-soft block mb-1.5" style={{ fontFamily: "var(--font-stamp)" }} htmlFor="cover_file">
-            Primary Cover Image (max 2MB)
+            Upload Primary Image (max 2MB)
           </label>
           <input
             type="file"
@@ -153,19 +156,20 @@ export default function BookForm({
           />
           <button
             type="button"
-            className="mt-2 px-4 py-1 rounded bg-oxblood text-cream hover:bg-oxblood-dark"
+            className="mt-2 px-4 py-2 rounded-md bg-oxblood text-cream hover:bg-oxblood-dark transition-colors text-xs uppercase tracking-wider cursor-pointer"
+            style={{ fontFamily: "var(--font-stamp)" }}
             onClick={() => handleFileUpload('cover_file', setPrimaryPreview, setPrimaryError)}
           >
             Upload Primary Image
           </button>
           {primaryError && <p className="text-sm text-oxblood mt-1">{primaryError}</p>}
           {primaryPreview && (
-            <img src={primaryPreview} alt="Primary preview" className="mt-2 max-h-48 object-contain" />
+            <img src={primaryPreview} alt="Primary preview" className="mt-2 max-h-48 rounded object-contain border border-ink/10" />
           )}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 rounded-md border border-ink/10 p-4">
           <label className="text-xs tracking-[0.18em] uppercase text-ink-soft block mb-1.5" style={{ fontFamily: "var(--font-stamp)" }} htmlFor="cover_file_2">
-            Secondary Cover Image (max 2MB)
+            Upload Secondary Image (max 2MB)
           </label>
           <input
             type="file"
@@ -176,14 +180,15 @@ export default function BookForm({
           />
           <button
             type="button"
-            className="mt-2 px-4 py-1 rounded bg-oxblood text-cream hover:bg-oxblood-dark"
+            className="mt-2 px-4 py-2 rounded-md bg-oxblood text-cream hover:bg-oxblood-dark transition-colors text-xs uppercase tracking-wider cursor-pointer"
+            style={{ fontFamily: "var(--font-stamp)" }}
             onClick={() => handleFileUpload('cover_file_2', setSecondaryPreview, setSecondaryError)}
           >
             Upload Secondary Image
           </button>
           {secondaryError && <p className="text-sm text-oxblood mt-1">{secondaryError}</p>}
           {secondaryPreview && (
-            <img src={secondaryPreview} alt="Secondary preview" className="mt-2 max-h-48 object-contain" />
+            <img src={secondaryPreview} alt="Secondary preview" className="mt-2 max-h-48 rounded object-contain border border-ink/10" />
           )}
         </div>
       </div>

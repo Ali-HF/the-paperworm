@@ -34,6 +34,22 @@ const bookSchema = z.object({
 
 export type BookFormState = { error?: string } | undefined;
 
+async function processUpload(file: any, fieldName: string, titleSlug: string): Promise<string | undefined> {
+  if (!file || (file.size ?? 0) === 0) return undefined;
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowed.includes(file.type)) throw new Error(`${fieldName} must be JPG, PNG, or WEBP`);
+  if (file.size > 2 * 1024 * 1024) throw new Error(`${fieldName} exceeds 2 MB size limit`);
+  const ext = path.extname(file.name).toLowerCase();
+  const slug = titleSlug.replace(/\s+/g, "-").toLowerCase();
+  const filename = `${slug}-${crypto.randomUUID()}${ext}`;
+  const filepath = path.join(process.cwd(), "public", "uploads", filename);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const resized = await sharp(buffer).resize({ width: 800, withoutEnlargement: true }).toBuffer();
+  await fs.mkdir(path.dirname(filepath), { recursive: true });
+  await fs.writeFile(filepath, resized);
+  return "/uploads/" + filename;
+}
+
 export async function createBookAction(
   _prev: BookFormState,
   formData: FormData
@@ -46,24 +62,8 @@ export async function createBookAction(
   }
 
   // Process cover image uploads
-  const processUpload = async (file: any, fieldName: string) => {
-    if (!file || (file.size ?? 0) === 0) return undefined;
-    const allowed = ["image/jpeg", "image/png", "image/webp"]; 
-    if (!allowed.includes(file.type)) throw new Error(`${fieldName} must be JPG, PNG, or WEBP`);
-    if (file.size > 2 * 1024 * 1024) throw new Error(`${fieldName} exceeds 2 MB size limit`);
-    const ext = path.extname(file.name).toLowerCase();
-    const slug = parsed.data.title.replace(/\s+/g, "-").toLowerCase();
-    const filename = `${slug}-${crypto.randomUUID()}${ext}`;
-    const filepath = path.join(process.cwd(), "public", "uploads", filename);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const resized = await sharp(buffer).resize({ width: 800, withoutEnlargement: true }).toBuffer();
-    await fs.mkdir(path.dirname(filepath), { recursive: true });
-    await fs.writeFile(filepath, resized);
-    return "/uploads/" + filename;
-  };
-
-  const coverUrl = await processUpload(formData.get("cover_file"), "Primary cover image");
-  const coverUrl2 = await processUpload(formData.get("cover_file_2"), "Secondary cover image");
+  const coverUrl = await processUpload(formData.get("cover_file"), "Primary cover image", parsed.data.title);
+  const coverUrl2 = await processUpload(formData.get("cover_file_2"), "Secondary cover image", parsed.data.title);
 
   await createBook({
     title: parsed.data.title,
@@ -95,8 +95,8 @@ export async function updateBookAction(
   }
 
   // Process cover image uploads for update
-  const coverUrl = await processUpload(formData.get("cover_file"), "Primary cover image");
-  const coverUrl2 = await processUpload(formData.get("cover_file_2"), "Secondary cover image");
+  const coverUrl = await processUpload(formData.get("cover_file"), "Primary cover image", parsed.data.title);
+  const coverUrl2 = await processUpload(formData.get("cover_file_2"), "Secondary cover image", parsed.data.title);
 
   await updateBook(id, {
     title: parsed.data.title,
