@@ -56,7 +56,8 @@ export default async function Header() {
               MY ORDERS
             </Link>
 
-            <Link href="/cart" className="trail-link relative flex items-center gap-1.5" aria-label="Cart">
+            {/* Cart — desktop only; mobile version is inside the hamburger drawer */}
+            <Link href="/cart" className="trail-link relative hidden sm:flex items-center gap-1.5" aria-label="Cart">
               <CartIcon />
               <span className="hidden sm:inline">CART</span>
               {count > 0 && (
