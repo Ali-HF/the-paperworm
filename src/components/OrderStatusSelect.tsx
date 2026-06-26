@@ -2,6 +2,7 @@
 
 import { updateOrderStatusAction } from "@/app/actions/admin-actions";
 import { showToast } from "@/lib/toast";
+import { useFormStatus } from "react";
 
 export default function OrderStatusSelect({
   orderId,
@@ -9,7 +10,7 @@ export default function OrderStatusSelect({
 }: {
   orderId: number;
   currentStatus: string;
-}) {
+}) { const { pending } = useFormStatus();
   return (
     <form
       action={async (formData) => {
@@ -34,6 +35,7 @@ export default function OrderStatusSelect({
         onChange={(e) => e.target.form?.requestSubmit()}
         className="text-xs rounded-md border border-ink/20 bg-cream px-2 py-1 focus:border-oxblood focus:outline-none transition-colors cursor-pointer"
         style={{ fontFamily: "var(--font-stamp)" }}
+        disabled={pending}
       >
         <option value="Pending">Pending</option>
         <option value="Confirmed">Confirmed</option>
@@ -43,6 +45,9 @@ export default function OrderStatusSelect({
         <option value="Delivered">Delivered</option>
         <option value="Cancelled">Cancelled</option>
       </select>
+      {pending && (
+        <span className="text-[10px] animate-pulse" style={{ fontFamily: "var(--font-stamp)" }}>Updating…</span>
+      )}
     </form>
   );
 }

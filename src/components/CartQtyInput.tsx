@@ -50,7 +50,9 @@ export default function CartQtyInput({
           type="button"
           onClick={handleDecrement}
           disabled={currentQty <= 1 || isPending}
-          className="px-3 py-1.5 hover:bg-parchment-dark/30 transition-colors text-ink text-sm border-r border-brass font-bold disabled:opacity-40 cursor-pointer"
+          className={
+            `px-3 py-1.5 hover:bg-parchment-dark/30 transition-colors text-ink text-sm border-r border-brass font-bold disabled:opacity-40 cursor-pointer ${isPending ? 'animate-pulse' : ''}`
+          }
         >
           -
         </button>
