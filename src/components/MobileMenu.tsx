@@ -7,10 +7,10 @@ import { GENRES } from "@/lib/constants";
 
 type MobileMenuProps = {
   session: any;
-  count: number;
+  count?: number;
 };
 
-export default function MobileMenu({ session, count }: MobileMenuProps) {
+export default function MobileMenu({ session, count = 0 }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
