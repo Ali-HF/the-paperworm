@@ -4,15 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { 
-  getCart, 
-  addToCart, 
-  setCartQty, 
-  removeFromCart, 
-  placeOrder, 
-  saveUserShipping, 
-  getBook, 
-  getOrCreateGuestUser 
+import {
+  getCart,
+  addToCart,
+  setCartQty,
+  removeFromCart,
+  placeOrder,
+  saveUserShipping,
+  getBook,
+  getOrCreateGuestUser
 } from "@/lib/db";
 import { sendWhatsappNotification } from "@/lib/whatsapp";
 import { sendOrderConfirmationRequestEmail } from "@/lib/email";
@@ -172,7 +172,7 @@ export async function checkoutAction(prevState: unknown, formData: FormData): Pr
     const cookieStore = await cookies();
     const cartCookie = cookieStore.get("notebloom_cart")?.value;
     const tempCart: Array<{ book_id: number; quantity: number }> = cartCookie ? JSON.parse(cartCookie) : [];
-    
+
     const resolvedItems = [];
     for (const item of tempCart) {
       const book = await getBook(item.book_id);
@@ -203,6 +203,7 @@ export async function checkoutAction(prevState: unknown, formData: FormData): Pr
 
   const shippingDetails = {
     fullName: fullName.trim(),
+    email: email ? email.trim() : "",
     phone: phone.trim(),
     address: address.trim(),
     area: area.trim(),
@@ -250,7 +251,7 @@ export async function checkoutAction(prevState: unknown, formData: FormData): Pr
   console.log(`Address:       ${address}`);
   console.log(`Location:      Area: ${area}, City: ${city}`);
   if (apartment) console.log(`Apartment:    ${apartment}`);
-  if (landmark)  console.log(`Landmark:     ${landmark}`);
+  if (landmark) console.log(`Landmark:     ${landmark}`);
   if (instructions) console.log(`Instructions: ${instructions}`);
   console.log(`Items:         ${itemsSummary}`);
   console.log(`Total:         ${totalPKR}`);
